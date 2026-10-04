@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Sandpack } from "@codesandbox/sandpack-react";
 import { Sparkles, Send, Loader2, Code2, Eye } from "lucide-react";
+import { buildPreviewDoc } from "./preview";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
 };
 
-const DEFAULT_CODE = `export default function App() {
+const DEFAULT_CODE = `function App() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white p-8">
       <div className="text-center max-w-xl">
@@ -32,7 +32,7 @@ export default function BuildPage() {
     {
       role: "assistant",
       content:
-        "Hi! Tell me what kind of website you want to build, e.g. \"a landing page for a coffee subscription brand\".",
+        'Hi! Tell me what kind of website you want to build, e.g. "a landing page for a coffee subscription brand".',
     },
   ]);
   const [input, setInput] = useState("");
@@ -44,6 +44,8 @@ export default function BuildPage() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
+
+  const previewDoc = useMemo(() => buildPreviewDoc(code), [code]);
 
   async function handleSend() {
     if (!input.trim() || loading) return;
@@ -160,27 +162,21 @@ export default function BuildPage() {
           </div>
         </div>
 
-        {/* Preview / code */}
-        <div className="flex-1 overflow-hidden">
-          <Sandpack
-            theme="dark"
-            template="react-ts"
-            files={{
-              "/App.tsx": code,
-            }}
-            customSetup={{
-              dependencies: {
-                "lucide-react": "latest",
-              },
-            }}
-            options={{
-              showTabs: tab === "code",
-              showLineNumbers: tab === "code",
-              showConsole: false,
-              editorWidthPercentage: tab === "code" ? 50 : 0,
-              externalResources: ["https://cdn.tailwindcss.com"],
-            }}
-          />
+        {/* Preview / code panel */}
+        <div className="flex-1 overflow-hidden bg-white">
+          {tab === "preview" ? (
+            <iframe
+              key={code}
+              srcDoc={previewDoc}
+              sandbox="allow-scripts"
+              className="h-full w-full border-0"
+              title="Live preview"
+            />
+          ) : (
+            <pre className="h-full w-full overflow-auto bg-[#0a0a0c] p-6 text-sm text-zinc-300 font-mono leading-relaxed">
+              <code>{code}</code>
+            </pre>
+          )}
         </div>
       </div>
     </div>
